@@ -6,105 +6,90 @@
 <title>AgenticS — Multi-Agent AI Dashboard</title>
 <style>
 :root {
-  --bg: #0f0f13;
-  --surface: #1a1a24;
-  --surface2: #24243a;
-  --accent: #7c5cfc;
-  --accent2: #5ce0d8;
-  --text: #e8e8f0;
-  --text2: #8888a0;
-  --success: #4ade80;
-  --error: #f87171;
-  --warning: #fbbf24;
-  --border: #2a2a3e;
-  --radius: 12px;
+  --bg: #0f0f13; --surface: #1a1a24; --surface2: #24243a;
+  --accent: #7c5cfc; --accent2: #5ce0d8; --text: #e8e8f0; --text2: #8888a0;
+  --success: #4ade80; --error: #f87171; --warning: #fbbf24;
+  --border: #2a2a3e; --radius: 12px;
 }
 * { margin: 0; padding: 0; box-sizing: border-box; }
-body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
 a { color: var(--accent); text-decoration: none; }
 
-/* Layout */
 .app { display: grid; grid-template-columns: 280px 1fr; grid-template-rows: 60px 1fr; height: 100vh; }
-.header { grid-column: 1 / -1; background: var(--surface); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 24px; gap: 16px; }
+.header { grid-column: 1/-1; background: var(--surface); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 24px; gap: 16px; }
 .sidebar { background: var(--surface); border-right: 1px solid var(--border); overflow-y: auto; padding: 16px; }
 .main { overflow-y: auto; padding: 24px; }
 
-/* Header */
 .logo { font-size: 20px; font-weight: 700; background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 .header-info { margin-left: auto; display: flex; gap: 16px; align-items: center; }
 .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--success); animation: pulse 2s infinite; }
-@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
 
-/* Sidebar sections */
 .section { margin-bottom: 24px; }
 .section-title { font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text2); margin-bottom: 12px; font-weight: 600; }
 
-/* Cards */
-.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; margin-bottom: 12px; cursor: pointer; transition: all 0.2s; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; margin-bottom: 12px; cursor: pointer; transition: all .2s; }
 .card:hover { border-color: var(--accent); background: var(--surface2); }
 .card.active { border-color: var(--accent); background: var(--surface2); }
 .card-title { font-weight: 600; font-size: 14px; margin-bottom: 4px; }
 .card-desc { font-size: 12px; color: var(--text2); }
 .card-badge { display: inline-block; padding: 2px 8px; border-radius: 99px; font-size: 10px; font-weight: 600; background: var(--accent); color: white; margin-left: 8px; }
 
-/* Chat area */
 .chat-container { display: flex; flex-direction: column; height: calc(100vh - 60px - 48px); }
 .chat-messages { flex: 1; overflow-y: auto; padding: 16px 0; }
-.message { padding: 12px 16px; margin-bottom: 8px; border-radius: var(--radius); max-width: 80%; animation: fadeIn 0.3s; }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.message { padding: 12px 16px; margin-bottom: 8px; border-radius: var(--radius); max-width: 80%; animation: fadeIn .3s; }
+@keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
 .message.user { background: var(--accent); color: white; margin-left: auto; border-bottom-right-radius: 4px; }
 .message.agent { background: var(--surface2); border: 1px solid var(--border); border-bottom-left-radius: 4px; }
 .message.system { background: var(--surface); border-left: 3px solid var(--accent2); color: var(--text2); font-size: 13px; font-style: italic; margin: 0 auto; max-width: 90%; }
 .message.error { background: #2a1a1a; border: 1px solid var(--error); color: var(--error); }
-.message pre { background: #0a0a10; padding: 12px; border-radius: 8px; overflow-x: auto; font-size: 13px; margin-top: 8px; }
-.message code { background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; font-size: 13px; }
 .msg-header { font-size: 11px; color: var(--text2); margin-bottom: 4px; }
 .msg-content { line-height: 1.6; white-space: pre-wrap; }
+.msg-content.streaming::after { content: '▊'; animation: blink 1s infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
 
-/* Input area */
 .chat-input-area { padding: 16px 0; display: flex; gap: 12px; align-items: flex-end; }
-.chat-input { flex: 1; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 16px; color: var(--text); font-size: 14px; resize: none; outline: none; min-height: 48px; max-height: 200px; font-family: inherit; transition: border-color 0.2s; }
+.chat-input { flex: 1; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 16px; color: var(--text); font-size: 14px; resize: none; outline: none; min-height: 48px; max-height: 200px; font-family: inherit; transition: border-color .2s; }
 .chat-input:focus { border-color: var(--accent); }
-.send-btn { background: var(--accent); border: none; color: white; padding: 12px 24px; border-radius: var(--radius); cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.2s; white-space: nowrap; }
+.send-btn { background: var(--accent); border: none; color: white; padding: 12px 24px; border-radius: var(--radius); cursor: pointer; font-weight: 600; font-size: 14px; transition: all .2s; white-space: nowrap; }
 .send-btn:hover { filter: brightness(1.15); transform: translateY(-1px); }
-.send-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+.send-btn:disabled { opacity: .5; cursor: not-allowed; transform: none; }
 
-/* Crew form */
 .form-group { margin-bottom: 16px; }
 .form-label { display: block; font-size: 12px; color: var(--text2); margin-bottom: 6px; font-weight: 500; }
 .form-input, .form-select, .form-textarea { width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; color: var(--text); font-size: 13px; font-family: inherit; outline: none; }
 .form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--accent); }
 .form-textarea { resize: vertical; min-height: 60px; }
-.btn { padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; font-size: 13px; transition: all 0.2s; }
+.btn { padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; font-size: 13px; transition: all .2s; }
 .btn-primary { background: var(--accent); color: white; }
 .btn-primary:hover { filter: brightness(1.15); }
 .btn-secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
 .btn-danger { background: var(--error); color: white; }
+.btn-sm { padding: 6px 14px; font-size: 12px; }
 
-/* Crew detail */
-.crew-agents { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
-.agent-chip { background: var(--bg); border: 1px solid var(--border); border-radius: 99px; padding: 6px 14px; font-size: 12px; display: flex; align-items: center; gap: 6px; }
-.agent-chip .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent2); }
-
-/* Stats */
-.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 24px; }
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px; margin-bottom: 24px; }
 .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; text-align: center; }
 .stat-value { font-size: 24px; font-weight: 700; background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 .stat-label { font-size: 11px; color: var(--text2); text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
 
-/* Tabs */
-.tabs { display: flex; gap: 0; margin-bottom: 24px; border-bottom: 1px solid var(--border); }
-.tab { padding: 12px 20px; cursor: pointer; font-size: 13px; font-weight: 500; color: var(--text2); border-bottom: 2px solid transparent; transition: all 0.2s; }
+.tabs { display: flex; gap: 0; margin-bottom: 24px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+.tab { padding: 12px 16px; cursor: pointer; font-size: 13px; font-weight: 500; color: var(--text2); border-bottom: 2px solid transparent; transition: all .2s; }
 .tab:hover { color: var(--text); }
 .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
 
-/* Modal */
-.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 100; }
-.modal { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 24px; width: 500px; max-width: 90vw; max-height: 80vh; overflow-y: auto; }
+.agent-chip { background: var(--bg); border: 1px solid var(--border); border-radius: 99px; padding: 6px 14px; font-size: 12px; display: inline-flex; align-items: center; gap: 6px; margin: 4px; }
+.agent-chip .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent2); }
+
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.6); display: flex; align-items: center; justify-content: center; z-index: 100; }
+.modal { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 24px; width: 520px; max-width: 90vw; max-height: 80vh; overflow-y: auto; }
 .modal-title { font-size: 18px; font-weight: 700; margin-bottom: 20px; }
 .hidden { display: none !important; }
 
-/* Responsive */
+.tag { display: inline-block; padding: 2px 10px; border-radius: 99px; font-size: 11px; background: var(--surface2); border: 1px solid var(--border); margin: 2px; }
+.tag.success { background: rgba(74,222,128,.15); border-color: var(--success); color: var(--success); }
+.tag.warning { background: rgba(251,191,36,.15); border-color: var(--warning); color: var(--warning); }
+.tag.error { background: rgba(248,113,113,.15); border-color: var(--error); color: var(--error); }
+
 @media (max-width: 768px) {
   .app { grid-template-columns: 1fr; }
   .sidebar { display: none; }
@@ -113,7 +98,6 @@ a { color: var(--accent); text-decoration: none; }
 </head>
 <body>
 <div class="app">
-  <!-- Header -->
   <header class="header">
     <div class="logo">🤖 AgenticS</div>
     <div class="header-info">
@@ -122,7 +106,6 @@ a { color: var(--accent); text-decoration: none; }
     </div>
   </header>
 
-  <!-- Sidebar -->
   <aside class="sidebar">
     <div class="section">
       <div class="section-title">Quick Chat</div>
@@ -131,56 +114,69 @@ a { color: var(--accent); text-decoration: none; }
         <div class="card-desc">ถามคำถาม ขอความช่วยเหลือ</div>
       </div>
     </div>
-
     <div class="section">
       <div class="section-title">Crews</div>
       <div id="crewsList"></div>
-      <div class="card" onclick="showCreateCrew()" style="border-style:dashed;text-align:center">
-        <div class="card-title">+ สร้าง Crew ใหม่</div>
+      <div class="card" onclick="showModal('createCrew')" style="border-style:dashed;text-align:center">
+        <div class="card-title">+ สร้าง Crew</div>
       </div>
     </div>
-
     <div class="section">
       <div class="section-title">Model</div>
       <select class="form-select" id="modelSelect" onchange="switchModel(this.value)">
-        <option value="gemini">🟢 Gemini (Google)</option>
-        <option value="openai">🔵 OpenAI (GPT)</option>
-        <option value="claude">🟠 Claude (Anthropic)</option>
-        <option value="ollama">🟡 Ollama (Local)</option>
+        <option value="gemini">🟢 Gemini</option>
+        <option value="gemini-cli">⚡ Gemini CLI</option>
+        <option value="openai">🔵 OpenAI</option>
+        <option value="claude">🟠 Claude</option>
+        <option value="ollama">🟡 Ollama</option>
       </select>
     </div>
-
     <div class="section">
       <div class="section-title">Tools</div>
       <div id="toolsList" style="font-size:12px;color:var(--text2)"></div>
     </div>
+    <div class="section">
+      <div class="section-title">Scheduled Tasks</div>
+      <div id="schedListSidebar"></div>
+      <div class="card" onclick="showModal('createSchedule')" style="border-style:dashed;text-align:center">
+        <div class="card-title">⏰ + Schedule</div>
+      </div>
+    </div>
   </aside>
 
-  <!-- Main Content -->
   <main class="main">
-    <!-- Stats -->
     <div class="stats-grid">
       <div class="stat-card"><div class="stat-value" id="statCrews">0</div><div class="stat-label">Crews</div></div>
       <div class="stat-card"><div class="stat-value" id="statAgents">0</div><div class="stat-label">Agents</div></div>
       <div class="stat-card"><div class="stat-value" id="statMessages">0</div><div class="stat-label">Messages</div></div>
-      <div class="stat-card"><div class="stat-value" id="statTokens">0</div><div class="stat-label">Tokens Used</div></div>
+      <div class="stat-card"><div class="stat-value" id="statTokens">0</div><div class="stat-label">Tokens</div></div>
+      <div class="stat-card"><div class="stat-value" id="statLoops">0</div><div class="stat-label">Loops</div></div>
+      <div class="stat-card"><div class="stat-value" id="statPlugins">0</div><div class="stat-label">Plugins</div></div>
     </div>
 
-    <!-- Tabs -->
     <div class="tabs">
-      <div class="tab active" onclick="switchTab('chat')">💬 Chat</div>
-      <div class="tab" onclick="switchTab('history')">📜 History</div>
-      <div class="tab" onclick="switchTab('crews')">👥 Crews</div>
+      <div class="tab active" data-tab="chat" onclick="switchTab('chat')">💬 Chat</div>
+      <div class="tab" data-tab="history" onclick="switchTab('history')">📜 History</div>
+      <div class="tab" data-tab="crews" onclick="switchTab('crews')">👥 Crews</div>
+      <div class="tab" data-tab="schedule" onclick="switchTab('schedule')">⏰ Schedule</div>
+      <div class="tab" data-tab="memory" onclick="switchTab('memory')">🧠 Memory</div>
+      <div class="tab" data-tab="trajectories" onclick="switchTab('trajectories')">📊 Trajectories</div>
+      <div class="tab" data-tab="plugins" onclick="switchTab('plugins')">🔌 Plugins</div>
     </div>
 
-    <!-- Chat Tab -->
     <div id="tabChat">
       <div class="chat-container">
         <div class="chat-messages" id="chatMessages">
-          <div class="message system">
-            👋 สวัสดี! ฉันคือ AgenticS — Multi-Agent AI System<br>
-            พิมพ์คำถามหรือ task ที่ต้องการให้ช่วยได้เลย 💬
-          </div>
+          <div class="message system">👋 สวัสดี! ฉันคือ AgenticS v0.2.0<br>
+          ✦ Streaming responses<br>
+          ✦ Memory persistence<br>
+          ✦ Multi-model (incl. Gemini CLI)<br>
+          ✦ Crew orchestration (Sequential / Parallel / Handoff / Swarm)<br>
+          ✦ Scheduled loops<br>
+          ✦ Sub-agent spawning<br>
+          ✦ Plugin system<br>
+          ✦ Trajectory export<br><br>
+          พิมพ์คำถามหรือ task ได้เลย 💬</div>
         </div>
         <div class="chat-input-area">
           <textarea class="chat-input" id="chatInput" placeholder="พิมพ์ข้อความ... (Enter ส่ง, Shift+Enter ขึ้นบรรทัดใหม่)" rows="1" onkeydown="handleKey(event)"></textarea>
@@ -189,363 +185,274 @@ a { color: var(--accent); text-decoration: none; }
       </div>
     </div>
 
-    <!-- History Tab -->
-    <div id="tabHistory" class="hidden">
-      <div id="historyList"></div>
-    </div>
-
-    <!-- Crews Tab -->
-    <div id="tabCrews" class="hidden">
-      <div id="crewsDetail"></div>
-    </div>
+    <div id="tabHistory" class="hidden"></div>
+    <div id="tabCrews" class="hidden"></div>
+    <div id="tabSchedule" class="hidden"></div>
+    <div id="tabMemory" class="hidden"></div>
+    <div id="tabTrajectories" class="hidden"></div>
+    <div id="tabPlugins" class="hidden"></div>
   </main>
 </div>
 
 <!-- Create Crew Modal -->
-<div class="modal-overlay hidden" id="createCrewModal">
+<div class="modal-overlay hidden" id="modalCreateCrew">
   <div class="modal">
     <div class="modal-title">👥 สร้าง Crew ใหม่</div>
-    <div class="form-group">
-      <label class="form-label">ชื่อ Crew</label>
-      <input class="form-input" id="crewName" placeholder="เช่น research-team">
-    </div>
-    <div class="form-group">
-      <label class="form-label">คำอธิบาย</label>
-      <input class="form-input" id="crewDesc" placeholder="ทีมวิจัย ค้นหา วิเคราะห์ สรุป">
-    </div>
-    <div class="form-group">
-      <label class="form-label">Process</label>
+    <div class="form-group"><label class="form-label">ชื่อ Crew</label><input class="form-input" id="crewName" placeholder="เช่น research-team"></div>
+    <div class="form-group"><label class="form-label">คำอธิบาย</label><input class="form-input" id="crewDesc" placeholder="ทีมวิจัย"></div>
+    <div class="form-group"><label class="form-label">Process</label>
       <select class="form-select" id="crewProcess">
-        <option value="sequential">Sequential (ทำงานตามลำดับ)</option>
-        <option value="parallel">Parallel (ทำงานพร้อมกัน)</option>
-        <option value="handoff">Handoff (ส่งงานต่อกัน)</option>
+        <option value="sequential">Sequential (ตามลำดับ)</option>
+        <option value="parallel">Parallel (พร้อมกัน)</option>
+        <option value="handoff">Handoff (ส่งต่อ)</option>
+        <option value="swarm">Swarm (โหวต/Consensus)</option>
       </select>
     </div>
-    <div class="form-group">
-      <label class="form-label">Agents</label>
+    <div class="form-group"><label class="form-label">Agents</label>
       <div id="agentsList">
         <div class="agent-entry" style="background:var(--bg);padding:12px;border-radius:8px;margin-bottom:8px">
           <input class="form-input" placeholder="ชื่อ Agent" style="margin-bottom:8px" data-field="name">
-          <input class="form-input" placeholder="Role (เช่น Researcher)" style="margin-bottom:8px" data-field="role">
-          <input class="form-input" placeholder="Goal" data-field="goal">
+          <input class="form-input" placeholder="Role" style="margin-bottom:8px" data-field="role">
+          <input class="form-input" placeholder="Goal" style="margin-bottom:8px" data-field="goal">
+          <select class="form-select" data-field="model" style="margin-bottom:4px">
+            <option value="gemini">Gemini</option><option value="openai">OpenAI</option><option value="claude">Claude</option><option value="ollama">Ollama</option>
+          </select>
         </div>
       </div>
       <button class="btn btn-secondary" onclick="addAgentEntry()" style="margin-top:8px">+ เพิ่ม Agent</button>
     </div>
     <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:20px">
-      <button class="btn btn-secondary" onclick="hideCreateCrew()">ยกเลิก</button>
-      <button class="btn btn-primary" onclick="createCrew()">สร้าง Crew</button>
+      <button class="btn btn-secondary" onclick="hideModal('createCrew')">ยกเลิก</button>
+      <button class="btn btn-primary" onclick="createCrew()">สร้าง</button>
+    </div>
+  </div>
+</div>
+
+<!-- Create Schedule Modal -->
+<div class="modal-overlay hidden" id="modalCreateSchedule">
+  <div class="modal">
+    <div class="modal-title">⏰ สร้าง Scheduled Task</div>
+    <div class="form-group"><label class="form-label">ชื่อ Task</label><input class="form-input" id="schedName" placeholder="เช่น daily-report"></div>
+    <div class="form-group"><label class="form-label">Task Prompt</label><textarea class="form-textarea" id="schedPrompt" placeholder="สิ่งที่ต้องทำ"></textarea></div>
+    <div class="form-group"><label class="form-label">Crew (optional)</label><select class="form-select" id="schedCrew"><option value="">— ไม่ใช้ crew —</option></select></div>
+    <div class="form-group"><label class="form-label">Schedule Type</label>
+      <select class="form-select" id="schedType">
+        <option value="manual">Manual (กด trigger เอง)</option>
+        <option value="interval">Interval (ทุก N วินาที)</option>
+        <option value="cron">Daily/Weekly</option>
+      </select>
+    </div>
+    <div class="form-group"><label class="form-label">Schedule Value (e.g. 3600 for interval, daily 09:00)</label><input class="form-input" id="schedValue"></div>
+    <div class="form-group"><label class="form-label">Tags (comma separated)</label><input class="form-input" id="schedTags" placeholder="report, daily"></div>
+    <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:20px">
+      <button class="btn btn-secondary" onclick="hideModal('createSchedule')">ยกเลิก</button>
+      <button class="btn btn-primary" onclick="createSchedule()">สร้าง</button>
     </div>
   </div>
 </div>
 
 <script>
-// --- State ---
-let ws = null;
-let currentMode = 'chat';
-let currentCrew = null;
-let currentModel = 'gemini';
-let messageCount = 0;
-let totalTokens = 0;
-let history = [];
-const API = window.location.origin;
+let ws=null, currentCrew=null, currentModel='gemini', msgCount=0, totalTokens=0, history=[];
+const API=window.location.origin;
 
-// --- Init ---
-document.addEventListener('DOMContentLoaded', () => {
-  connectWebSocket();
-  loadModels();
-  loadTools();
-  loadCrews();
-});
+document.addEventListener('DOMContentLoaded',()=>{ connectWS(); loadAll(); });
+function loadAll(){ loadModels(); loadTools(); loadCrews(); loadSchedule(); loadPlugins(); }
 
-// --- WebSocket ---
-function connectWebSocket() {
-  const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
-  ws = new WebSocket(`${protocol}//${location.host}/ws`);
-  
-  ws.onopen = () => {
-    document.getElementById('statusDot').style.background = 'var(--success)';
-    document.getElementById('statusDot').title = 'Connected';
+// WebSocket with streaming
+function connectWS(){
+  const proto=location.protocol==='https:'?'wss:':'ws:';
+  ws=new WebSocket(`${proto}//${location.host}/ws`);
+  ws.onopen=()=>{document.getElementById('statusDot').style.background='var(--success)';};
+  ws.onmessage=e=>{
+    const d=JSON.parse(e.data);
+    if(d.type==='status') addMessage('system',d.content);
+    else if(d.type==='stream_start') startStreaming();
+    else if(d.type==='stream_chunk') appendStream(d.content);
+    else if(d.type==='stream_end') endStreaming(d.content);
+    else if(d.type==='response'){removeTyping();addMessage('agent',d.content);if(d.usage)totalTokens+=d.usage.total_tokens||0;updateStats();history.push({time:new Date().toLocaleString(),content:d.content.substring(0,200),crew:d.crew});}
+    else if(d.type==='error'){removeTyping();addMessage('error','❌ '+d.content);}
   };
-  
-  ws.onmessage = (event) => {
-    const data = JSON.parse(event.data);
-    handleWsMessage(data);
-  };
-  
-  ws.onclose = () => {
-    document.getElementById('statusDot').style.background = 'var(--error)';
-    document.getElementById('statusDot').title = 'Disconnected';
-    setTimeout(connectWebSocket, 3000);
-  };
+  ws.onclose=()=>{document.getElementById('statusDot').style.background='var(--error)';setTimeout(connectWS,3000);};
 }
 
-function handleWsMessage(data) {
-  if (data.type === 'status') {
-    addMessage('system', data.content);
-  } else if (data.type === 'response') {
-    removeTyping();
-    addMessage('agent', data.content);
-    if (data.usage) totalTokens += data.usage.total_tokens || 0;
-    updateStats();
-    history.push({ time: new Date().toLocaleString(), content: data.content.substring(0, 200), crew: data.crew });
-  } else if (data.type === 'error') {
-    removeTyping();
-    addMessage('error', '❌ ' + data.content);
-  }
-}
+let streamingEl=null;
+function startStreaming(){removeTyping();const c=document.getElementById('chatMessages');const d=document.createElement('div');d.className='message agent';d.innerHTML='<div class="msg-header">🤖 Agent</div><div class="msg-content streaming" id="streamContent"></div>';c.appendChild(d);streamingEl=document.getElementById('streamContent');scrollChat();}
+function appendStream(chunk){if(streamingEl)streamingEl.textContent+=chunk;scrollChat();}
+function endStreaming(full){if(streamingEl){streamingEl.classList.remove('streaming');streamingEl.textContent=full;}streamingEl=null;msgCount++;updateStats();}
 
-// --- Chat ---
-function sendMessage() {
-  const input = document.getElementById('chatInput');
-  const msg = input.value.trim();
-  if (!msg) return;
-  
-  addMessage('user', msg);
-  input.value = '';
-  input.style.height = 'auto';
-  messageCount++;
-  updateStats();
-  
-  // Show typing
-  const typing = document.createElement('div');
-  typing.className = 'message system';
-  typing.id = 'typing';
-  typing.innerHTML = '⏳ กำลังประมวลผล...';
-  document.getElementById('chatMessages').appendChild(typing);
-  scrollChat();
-  
-  // Send via WebSocket
-  if (ws && ws.readyState === WebSocket.OPEN) {
-    ws.send(JSON.stringify({
-      message: msg,
-      model: currentModel,
-      crew: currentCrew,
-    }));
-  } else {
-    removeTyping();
-    addMessage('error', 'ไม่ได้เชื่อมต่อ server');
-  }
+function sendMessage(){
+  const inp=document.getElementById('chatInput'),msg=inp.value.trim();
+  if(!msg)return;
+  addMessage('user',msg);inp.value='';inp.style.height='auto';msgCount++;updateStats();
+  if(ws&&ws.readyState===WebSocket.OPEN){
+    ws.send(JSON.stringify({message:msg,model:currentModel,crew:currentCrew,stream:true}));
+  }else addMessage('error','ไม่ได้เชื่อมต่อ server');
 }
-
-function addMessage(type, content) {
-  const container = document.getElementById('chatMessages');
-  const div = document.createElement('div');
-  div.className = `message ${type}`;
-  
-  const header = document.createElement('div');
-  header.className = 'msg-header';
-  header.textContent = type === 'user' ? '👤 You' : type === 'system' ? '⚡ System' : type === 'error' ? '❌ Error' : '🤖 Agent';
-  
-  const body = document.createElement('div');
-  body.className = 'msg-content';
-  body.textContent = content;
-  
-  div.appendChild(header);
-  div.appendChild(body);
-  container.appendChild(div);
-  scrollChat();
+function addMessage(type,content){
+  const c=document.getElementById('chatMessages'),d=document.createElement('div');
+  d.className=`message ${type}`;
+  const h=document.createElement('div');h.className='msg-header';
+  h.textContent=type==='user'?'👤 You':type==='system'?'⚡ System':type==='error'?'❌ Error':'🤖 Agent';
+  const b=document.createElement('div');b.className='msg-content';b.textContent=content;
+  d.appendChild(h);d.appendChild(b);c.appendChild(d);scrollChat();
 }
+function removeTyping(){const t=document.getElementById('typing');if(t)t.remove();}
+function scrollChat(){const c=document.getElementById('chatMessages');c.scrollTop=c.scrollHeight;}
+function handleKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage();}}
 
-function removeTyping() {
-  const t = document.getElementById('typing');
-  if (t) t.remove();
-}
-
-function scrollChat() {
-  const c = document.getElementById('chatMessages');
-  c.scrollTop = c.scrollHeight;
-}
-
-function handleKey(e) {
-  if (e.key === 'Enter' && !e.shiftKey) {
-    e.preventDefault();
-    sendMessage();
-  }
-}
-
-// --- Tabs ---
-function switchTab(tab) {
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  event.target.classList.add('active');
-  document.getElementById('tabChat').classList.toggle('hidden', tab !== 'chat');
-  document.getElementById('tabHistory').classList.toggle('hidden', tab !== 'history');
-  document.getElementById('tabCrews').classList.toggle('hidden', tab !== 'crews');
-  
-  if (tab === 'history') renderHistory();
-  if (tab === 'crews') renderCrewsDetail();
-}
-
-// --- Models ---
-async function loadModels() {
-  try {
-    const res = await fetch(`${API}/api/models`);
-    const data = await res.json();
-    document.getElementById('currentModel').textContent = data.default;
-  } catch(e) { console.error('Failed to load models:', e); }
-}
-
-function switchModel(model) {
-  currentModel = model;
-  document.getElementById('currentModel').textContent = model;
-}
-
-// --- Tools ---
-async function loadTools() {
-  try {
-    const res = await fetch(`${API}/api/tools`);
-    const data = await res.json();
-    document.getElementById('toolsList').textContent = data.tools.join(', ');
-  } catch(e) { console.error('Failed to load tools:', e); }
-}
-
-// --- Crews ---
-async function loadCrews() {
-  try {
-    const res = await fetch(`${API}/api/crews`);
-    const data = await res.json();
-    renderCrewsSidebar(data.crews);
-    updateStats();
-  } catch(e) { console.error('Failed to load crews:', e); }
-}
-
-function renderCrewsSidebar(crews) {
-  const container = document.getElementById('crewsList');
-  container.innerHTML = '';
-  let totalAgents = 0;
-  crews.forEach(crew => {
-    totalAgents += crew.agents.length;
-    const card = document.createElement('div');
-    card.className = 'card' + (currentCrew === crew.name ? ' active' : '');
-    card.innerHTML = `
-      <div class="card-title">${crew.name}<span class="card-badge">${crew.process}</span></div>
-      <div class="card-desc">${crew.agents.length} agents · ${crew.description || 'No description'}</div>
-    `;
-    card.onclick = () => selectCrew(crew.name);
-    container.appendChild(card);
+// Tabs
+function switchTab(tab){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===tab));
+  ['chat','history','crews','schedule','memory','trajectories','plugins'].forEach(t=>{
+    const el=document.getElementById('tab'+t.charAt(0).toUpperCase()+t.slice(1));
+    if(el)el.classList.toggle('hidden',t!==tab);
   });
-  document.getElementById('statCrews').textContent = crews.length;
-  document.getElementById('statAgents').textContent = totalAgents;
+  if(tab==='history')renderHistory();
+  if(tab==='crews')renderCrewsDetail();
+  if(tab==='schedule')renderSchedule();
+  if(tab==='memory')renderMemory();
+  if(tab==='trajectories')renderTrajectories();
+  if(tab==='plugins')renderPlugins();
 }
 
-function selectCrew(name) {
-  currentCrew = currentCrew === name ? null : name;
-  loadCrews();
-  addMessage('system', currentCrew ? `📋 Selected crew: ${currentCrew}` : '💬 Quick chat mode');
+// Models & Tools
+async function loadModels(){try{const r=await fetch(`${API}/api/models`);const d=await r.json();document.getElementById('currentModel').textContent=d.default;}catch(e){}}
+async function loadTools(){try{const r=await fetch(`${API}/api/tools`);const d=await r.json();document.getElementById('toolsList').textContent=d.tools.join(', ');}catch(e){}}
+function switchModel(m){currentModel=m;document.getElementById('currentModel').textContent=m;}
+
+// Crews
+async function loadCrews(){
+  try{const r=await fetch(`${API}/api/crews`);const d=await r.json();
+  const c=document.getElementById('crewsList');c.innerHTML='';let ta=0;
+  d.crews.forEach(cr=>{ta+=cr.agents.length;
+    const card=document.createElement('div');card.className='card'+(currentCrew===cr.name?' active':'');
+    card.innerHTML=`<div class="card-title">${cr.name}<span class="card-badge">${cr.process}</span></div><div class="card-desc">${cr.agents.length} agents</div>`;
+    card.onclick=()=>{currentCrew=currentCrew===cr.name?null:cr.name;loadCrews();addMessage('system',currentCrew?`📋 Crew: ${currentCrew}`:'💬 Quick chat');};
+    c.appendChild(card);});
+  document.getElementById('statCrews').textContent=d.crews.length;document.getElementById('statAgents').textContent=ta;
+  // Update schedule crew dropdown
+  const sel=document.getElementById('schedCrew');sel.innerHTML='<option value="">— ไม่ใช้ crew —</option>';
+  d.crews.forEach(cr=>{sel.innerHTML+=`<option value="${cr.name}">${cr.name}</option>`;});
+  }catch(e){}
+}
+function setMode(){currentCrew=null;loadCrews();addMessage('system','💬 Quick chat mode');}
+async function createCrew(){
+  const name=document.getElementById('crewName').value.trim();if(!name)return alert('ใส่ชื่อ!');
+  const entries=document.querySelectorAll('#agentsList .agent-entry'),agents=[];
+  entries.forEach(e=>{const n=e.querySelector('[data-field="name"]').value.trim();const r=e.querySelector('[data-field="role"]').value.trim();const g=e.querySelector('[data-field="goal"]').value.trim();const m=e.querySelector('[data-field="model"]').value;
+    if(n)agents.push({name:n,role:r||'Assistant',goal:g||'Help',model:m});});
+  if(!agents.length)return alert('เพิ่มอย่างน้อย 1 Agent!');
+  await fetch(`${API}/api/crews`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,description:document.getElementById('crewDesc').value,process:document.getElementById('crewProcess').value,agents})});
+  hideModal('createCrew');loadCrews();addMessage('system',`✅ สร้าง crew "${name}" สำเร็จ!`);
+}
+function addAgentEntry(){
+  const l=document.getElementById('agentsList'),e=document.createElement('div');e.className='agent-entry';
+  e.style.cssText='background:var(--bg);padding:12px;border-radius:8px;margin-bottom:8px';
+  e.innerHTML=`<input class="form-input" placeholder="ชื่อ Agent" style="margin-bottom:8px" data-field="name"><input class="form-input" placeholder="Role" style="margin-bottom:8px" data-field="role"><input class="form-input" placeholder="Goal" style="margin-bottom:8px" data-field="goal"><select class="form-select" data-field="model" style="margin-bottom:4px"><option value="gemini">Gemini</option><option value="openai">OpenAI</option><option value="claude">Claude</option><option value="ollama">Ollama</option></select>`;
+  l.appendChild(e);
+}
+async function renderCrewsDetail(){
+  const r=await fetch(`${API}/api/crews`),d=await r.json(),c=document.getElementById('tabCrews');
+  if(!d.crews.length){c.innerHTML='<div class="message system">ยังไม่มี Crew</div>';return;}
+  c.innerHTML=d.crews.map(cr=>`<div class="card"><div class="card-title">${cr.name} <span class="card-badge">${cr.process}</span></div><div class="card-desc">${cr.description}</div><div style="margin-top:8px">${cr.agents.map(a=>`<span class="agent-chip"><span class="dot"></span>${a.name} (${a.role})</span>`).join('')}</div><div style="margin-top:12px;display:flex;gap:8px"><button class="btn btn-primary btn-sm" onclick="currentCrew='${cr.name}';switchTab('chat')">▶ Run</button><button class="btn btn-danger btn-sm" onclick="deleteCrew('${cr.name}')">🗑</button></div></div>`).join('');
+}
+async function deleteCrew(n){if(!confirm(`ลบ "${n}"?`))return;await fetch(`${API}/api/crews/${n}`,{method:'DELETE'});if(currentCrew===n)currentCrew=null;loadCrews();renderCrewsDetail();}
+
+// Schedule
+async function loadSchedule(){
+  try{const r=await fetch(`${API}/api/schedule`);const d=await r.json();
+  const c=document.getElementById('schedListSidebar');c.innerHTML='';
+  d.tasks.slice(0,5).forEach(t=>{const card=document.createElement('div');card.className='card';card.style.padding='10px';
+    card.innerHTML=`<div class="card-title" style="font-size:12px">${t.name} <span class="tag ${t.status==='active'?'success':'warning'}">${t.status}</span></div><div class="card-desc">${t.schedule_type}</div>`;
+    card.onclick=()=>{switchTab('schedule');};
+    c.appendChild(card);});
+  document.getElementById('statLoops').textContent=d.tasks.length;
+  }catch(e){}
+}
+async function createSchedule(){
+  const name=document.getElementById('schedName').value.trim();if(!name)return alert('ใส่ชื่อ!');
+  await fetch(`${API}/api/schedule`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+    name,task_prompt:document.getElementById('schedPrompt').value,crew_name:document.getElementById('schedCore')?.value||null,
+    schedule_type:document.getElementById('schedType').value,schedule_value:document.getElementById('schedValue').value,
+    tags:document.getElementById('schedTags').value.split(',').map(s=>s.trim()).filter(Boolean)})});
+  hideModal('createSchedule');loadSchedule();addMessage('system',`✅ Schedule "${name}" สร้างแล้ว`);
+}
+async function renderSchedule(){
+  const r=await fetch(`${API}/api/schedule`),d=await r.json(),c=document.getElementById('tabSchedule');
+  if(!d.tasks.length){c.innerHTML='<div class="message system">ยังไม่มี Scheduled Tasks</div>';return;}
+  c.innerHTML=d.tasks.map(t=>`<div class="card"><div class="card-title">${t.name} <span class="tag ${t.status==='active'?'success':t.status==='completed'?'':'warning'}">${t.status}</span> <span class="card-badge">${t.schedule_type}</span></div><div class="card-desc">${t.description||t.task_prompt.substring(0,100)}</div><div style="font-size:11px;color:var(--text2);margin-top:4px">Runs: ${t.run_count} | Last: ${t.last_run||'never'}</div><div style="margin-top:8px;display:flex;gap:8px"><button class="btn btn-primary btn-sm" onclick="triggerSched('${t.id}')">▶ Trigger</button>${t.status==='active'?`<button class="btn btn-secondary btn-sm" onclick="pauseSched('${t.id}')">⏸ Pause</button>`:`<button class="btn btn-secondary btn-sm" onclick="resumeSched('${t.id}')">▶ Resume</button>`}<button class="btn btn-danger btn-sm" onclick="deleteSched('${t.id}')">🗑</button></div></div>`).join('');
+}
+async function triggerSched(id){await fetch(`${API}/api/schedule/${id}/trigger`,{method:'POST'});loadSchedule();addMessage('system','⚡ Task triggered');}
+async function pauseSched(id){await fetch(`${API}/api/schedule/${id}?action=pause`,{method:'PATCH'});loadSchedule();}
+async function resumeSched(id){await fetch(`${API}/api/schedule/${id}?action=resume`,{method:'PATCH'});loadSchedule();}
+async function deleteSched(id){await fetch(`${API}/api/schedule/${id}`,{method:'DELETE'});loadSchedule();}
+
+// Memory
+async function renderMemory(){
+  const r=await fetch(`${API}/api/memory/sessions`),d=await r.json(),c=document.getElementById('tabMemory');
+  let html='<div class="card"><div class="card-title">🧠 Memory Store</div><div class="card-desc">Conversation history and learned patterns</div></div>';
+  if(d.sessions.length){
+    html+='<div class="section-title" style="margin-top:16px">Recent Sessions</div>';
+    html+=d.sessions.map(s=>`<div class="card" style="cursor:default"><div class="card-title" style="font-size:13px">${s.session_id.substring(0,12)}...</div><div class="card-desc">${s.message_count} messages | ${s.last_message}</div></div>`).join('');
+  } else html+='<div class="message system">ยังไม่มี memory — เริ่มคุยกับ agent แล้ว memory จะถูกเก็บอัตโนมัติ</div>';
+  // Profile
+  try{const pr=await fetch(`${API}/api/memory/profile`);const pd=await pr.json();
+    if(pd.profile){html+=`<div class="section-title" style="margin-top:16px">User Profile</div><div class="card" style="cursor:default"><div class="card-desc">Interactions: ${pd.profile.interaction_count} | Topics: ${pd.profile.topics?.join(', ')||'none'}</div></div>`;}}catch(e){}
+  c.innerHTML=html;
 }
 
-function setMode(mode) {
-  currentCrew = null;
-  loadCrews();
-  addMessage('system', '💬 Quick chat mode — single agent');
+// Trajectories
+async function renderTrajectories(){
+  const r=await fetch(`${API}/api/trajectories`),d=await r.json(),c=document.getElementById('tabTrajectories');
+  let html='<div class="card"><div class="card-title">📊 Execution Trajectories</div><div class="card-desc">Recorded agent reasoning chains for analysis and training</div><div style="margin-top:12px"><button class="btn btn-primary btn-sm" onclick="exportTrajectories()">📤 Export Training Data</button></div></div>';
+  if(d.trajectories.length){
+    html+=d.trajectories.map(t=>`<div class="card" style="cursor:default"><div class="card-title" style="font-size:13px">${t.task}</div><div class="card-desc">${t.agent} | ${t.steps} steps | ${t.tokens} tokens | <span class="tag ${t.success?'success':'error'}">${t.success?'✅ success':'❌ failed'}</span></div><div style="font-size:11px;color:var(--text2);margin-top:4px">${t.created_at}</div></div>`).join('');
+  } else html+='<div class="message system">ยังไม่มี trajectories — ทำงานกับ agent แล้วจะบันทึกอัตโนมัติ</div>';
+  c.innerHTML=html;
+}
+async function exportTrajectories(){await fetch(`${API}/api/trajectories/export`,{method:'POST'});addMessage('system','📤 Exported training data');}
+
+// Plugins
+async function loadPlugins(){
+  try{const r=await fetch(`${API}/api/plugins`);const d=await r.json();
+  document.getElementById('statPlugins').textContent=d.loaded.length;
+  }catch(e){}
+}
+async function renderPlugins(){
+  const r=await fetch(`${API}/api/plugins`),d=await r.json(),c=document.getElementById('tabPlugins');
+  let html='<div class="card"><div class="card-title">🔌 Plugin System</div><div class="card-desc">Extend AgenticS with custom tools</div><div style="margin-top:12px;display:flex;gap:8px"><input class="form-input" id="newPluginName" placeholder="Plugin name" style="width:200px"><button class="btn btn-primary btn-sm" onclick="createPlugin()">+ Create Plugin</button></div></div>';
+  html+='<div class="section-title" style="margin-top:16px">Available Plugins</div>';
+  if(d.discovered.length){
+    html+=d.discovered.map(p=>{const loaded=d.loaded.some(l=>l.name===p.name);
+      return `<div class="card"><div class="card-title">${p.name} <span class="card-badge">v${p.version}</span> ${loaded?'<span class="tag success">loaded</span>':''}</div><div class="card-desc">${p.description}</div>${!loaded?`<div style="margin-top:8px"><button class="btn btn-primary btn-sm" onclick="loadPlugin('${p.name}')">Load</button></div>`:''}</div>`;
+    }).join('');
+  } else html+='<div class="message system">ยังไม่มี plugins — สร้าง plugin แรกจากปุ่มด้านบน</div>';
+  c.innerHTML=html;
+}
+async function createPlugin(){
+  const name=document.getElementById('newPluginName').value.trim();if(!name)return;
+  await fetch(`${API}/api/plugins`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name})});
+  addMessage('system',`🔌 Plugin "${name}" สร้างแล้ว — แก้ไขไฟล์ใน plugins/${name}/`);renderPlugins();
+}
+async function loadPlugin(name){
+  await fetch(`${API}/api/plugins/${name}/load`,{method:'POST'});
+  addMessage('system',`🔌 Plugin "${name}" loaded`);loadPlugins();renderPlugins();loadTools();
 }
 
-// --- Create Crew ---
-function showCreateCrew() {
-  document.getElementById('createCrewModal').classList.remove('hidden');
-}
-function hideCreateCrew() {
-  document.getElementById('createCrewModal').classList.add('hidden');
-}
-
-function addAgentEntry() {
-  const list = document.getElementById('agentsList');
-  const entry = document.createElement('div');
-  entry.className = 'agent-entry';
-  entry.style.cssText = 'background:var(--bg);padding:12px;border-radius:8px;margin-bottom:8px';
-  entry.innerHTML = `
-    <input class="form-input" placeholder="ชื่อ Agent" style="margin-bottom:8px" data-field="name">
-    <input class="form-input" placeholder="Role (เช่น Researcher)" style="margin-bottom:8px" data-field="role">
-    <input class="form-input" placeholder="Goal" data-field="goal">
-  `;
-  list.appendChild(entry);
+// History
+function renderHistory(){
+  const c=document.getElementById('tabHistory');
+  if(!history.length){c.innerHTML='<div class="message system">ยังไม่มี history</div>';return;}
+  c.innerHTML=history.map(h=>`<div class="card" style="cursor:default"><div class="card-title" style="font-size:13px">${h.time}</div><div class="card-desc">${h.content}${h.crew?' · crew: '+h.crew:''}</div></div>`).join('');
 }
 
-async function createCrew() {
-  const name = document.getElementById('crewName').value.trim();
-  if (!name) return alert('ใส่ชื่อ Crew!');
-  
-  const entries = document.querySelectorAll('#agentsList .agent-entry');
-  const agents = [];
-  entries.forEach(entry => {
-    const name = entry.querySelector('[data-field="name"]').value.trim();
-    const role = entry.querySelector('[data-field="role"]').value.trim();
-    const goal = entry.querySelector('[data-field="goal"]').value.trim();
-    if (name) agents.push({ name, role: role || 'Assistant', goal: goal || 'Help with tasks' });
-  });
-  
-  if (agents.length === 0) return alert('เพิ่มอย่างน้อย 1 Agent!');
-  
-  try {
-    await fetch(`${API}/api/crews`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        name,
-        description: document.getElementById('crewDesc').value,
-        process: document.getElementById('crewProcess').value,
-        agents,
-      }),
-    });
-    hideCreateCrew();
-    loadCrews();
-    addMessage('system', `✅ สร้าง crew "${name}" สำเร็จ!`);
-  } catch(e) {
-    alert('Error: ' + e.message);
-  }
-}
+// Modals
+function showModal(name){document.getElementById('modal'+name.charAt(0).toUpperCase()+name.slice(1)).classList.remove('hidden');}
+function hideModal(name){document.getElementById('modal'+name.charAt(0).toUpperCase()+name.slice(1)).classList.add('hidden');}
 
-// --- History ---
-function renderHistory() {
-  const container = document.getElementById('historyList');
-  if (history.length === 0) {
-    container.innerHTML = '<div class="message system">ยังไม่มี history</div>';
-    return;
-  }
-  container.innerHTML = history.map((h, i) => `
-    <div class="card">
-      <div class="card-title">${h.time}</div>
-      <div class="card-desc">${h.content}${h.crew ? ` · crew: ${h.crew}` : ''}</div>
-    </div>
-  `).join('');
-}
-
-// --- Crews Detail ---
-function renderCrewsDetail() {
-  fetch(`${API}/api/crews`).then(r => r.json()).then(data => {
-    const container = document.getElementById('crewsDetail');
-    if (data.crews.length === 0) {
-      container.innerHTML = '<div class="message system">ยังไม่มี Crew — สร้าง Crew แรกจาก sidebar</div>';
-      return;
-    }
-    container.innerHTML = data.crews.map(crew => `
-      <div class="card">
-        <div class="card-title">${crew.name} <span class="card-badge">${crew.process}</span></div>
-        <div class="card-desc">${crew.description}</div>
-        <div class="crew-agents">
-          ${crew.agents.map(a => `<div class="agent-chip"><div class="dot"></div>${a.name} (${a.role})</div>`).join('')}
-        </div>
-        <div style="margin-top:12px;display:flex;gap:8px">
-          <button class="btn btn-primary" onclick="selectCrew('${crew.name}');switchTab('chat')">▶ Run</button>
-          <button class="btn btn-danger" onclick="deleteCrew('${crew.name}')">🗑 Delete</button>
-        </div>
-      </div>
-    `).join('');
-  });
-}
-
-async function deleteCrew(name) {
-  if (!confirm(`ลบ crew "${name}"?`)) return;
-  await fetch(`${API}/api/crews/${name}`, { method: 'DELETE' });
-  if (currentCrew === name) currentCrew = null;
-  loadCrews();
-  renderCrewsDetail();
-}
-
-// --- Stats ---
-function updateStats() {
-  document.getElementById('statMessages').textContent = messageCount;
-  document.getElementById('statTokens').textContent = totalTokens > 999 ? (totalTokens/1000).toFixed(1) + 'k' : totalTokens;
+function updateStats(){
+  document.getElementById('statMessages').textContent=msgCount;
+  document.getElementById('statTokens').textContent=totalTokens>999?(totalTokens/1000).toFixed(1)+'k':totalTokens;
 }
 </script>
 </body>

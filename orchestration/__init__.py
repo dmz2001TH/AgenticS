@@ -1,17 +1,12 @@
 """
 AgenticS Orchestration — Crew & Swarm patterns for multi-agent coordination
-Inspired by CrewAI, maw-js, and LangGraph patterns
-
-Process types:
-  - sequential: agents run one after another, passing context
-  - parallel: all agents work on the same task simultaneously
-  - handoff: agents transfer work to each other based on decisions
+Supports: Sequential, Parallel, Handoff (conditional routing), Sub-agent spawning
 """
 
 import json
 import uuid
 import yaml
-import asyncio
+import time
 from enum import Enum
 from pathlib import Path
 from typing import Optional, Callable
@@ -27,6 +22,7 @@ class ProcessType(str, Enum):
     SEQUENTIAL = "sequential"
     PARALLEL = "parallel"
     HANDOFF = "handoff"
+    SWARM = "swarm"  # New: agents vote/consensus
 
 
 @dataclass
@@ -65,6 +61,7 @@ class CrewConfig:
     process: ProcessType = ProcessType.SEQUENTIAL
     verbose: bool = True
     max_agents: int = 10
+    routing_agent: Optional[str] = None  # Which agent does the routing for handoff
 
 
 class Crew:
@@ -83,7 +80,6 @@ class Crew:
 
     def run(self, task: str) -> CrewResult:
         """Execute a task using the crew's process type."""
-        import time
         start = time.time()
 
         if self.config.process == ProcessType.SEQUENTIAL:
@@ -92,6 +88,8 @@ class Crew:
             result = self._run_parallel(task)
         elif self.config.process == ProcessType.HANDOFF:
             result = self._run_handoff(task)
+        elif self.config.process == ProcessType.SWARM:
+            result = self._run_swarm(task)
         else:
             result = self._run_sequential(task)
 
@@ -107,16 +105,12 @@ class Crew:
 
     def _run_sequential(self, task: str) -> CrewResult:
         """Agents run in order, each building on the previous agent's output."""
-        result = CrewResult(
-            crew_name=self.config.name,
-            task=task,
-            process="sequential",
-        )
+        result = CrewResult(crew_name=self.config.name, task=task, process="sequential")
 
         context = ""
         for i, agent in enumerate(self.agents):
             if self.config.verbose:
-                print(f"🤖 [{self.config.name}] Agent {i + 1}/{len(self.agents)}: {agent.config.name} ({agent.config.role})")
+                print(f"🤖 [{self.config.name}] Agent {i+1}/{len(self.agents)}: {agent.config.name} ({agent.config.role})")
 
             agent_task = task if i == 0 else f"Based on the previous work, continue the task.\n\nOriginal task: {task}"
             agent_result = agent.run(agent_task, context=context)
@@ -129,18 +123,10 @@ class Crew:
     def _run_parallel(self, task: str) -> CrewResult:
         """All agents work on the same task, results are combined."""
         import concurrent.futures
-
-        result = CrewResult(
-            crew_name=self.config.name,
-            task=task,
-            process="parallel",
-        )
+        result = CrewResult(crew_name=self.config.name, task=task, process="parallel")
 
         with concurrent.futures.ThreadPoolExecutor(max_workers=len(self.agents)) as executor:
-            futures = {
-                executor.submit(agent.run, task): agent
-                for agent in self.agents
-            }
+            futures = {executor.submit(agent.run, task): agent for agent in self.agents}
             for future in concurrent.futures.as_completed(futures):
                 agent_result = future.result()
                 result.agent_results.append(agent_result)
@@ -153,73 +139,119 @@ class Crew:
         return result
 
     def _run_handoff(self, task: str) -> CrewResult:
-        """First agent decides who handles what, then delegates."""
+        """Router agent decides who handles what, then delegates with conditional routing."""
         if not self.agents:
             return CrewResult(crew_name=self.config.name, task=task, process="handoff", final_output="No agents configured")
 
-        result = CrewResult(
-            crew_name=self.config.name,
-            task=task,
-            process="handoff",
-        )
+        result = CrewResult(crew_name=self.config.name, task=task, process="handoff")
 
-        # Let the first agent act as router/orchestrator
+        # First agent is router
         orchestrator = self.agents[0]
         workers = self.agents[1:]
 
         if not workers:
-            # Only one agent, run sequentially
             agent_result = orchestrator.run(task)
             result.agent_results.append(agent_result)
             result.final_output = agent_result.output
             return result
 
-        # Create routing prompt
-        worker_desc = "\n".join([f"- {a.config.name} ({a.config.role}): {a.config.goal}" for a in workers])
+        # Build worker descriptions
+        worker_desc = "\n".join([
+            f"- {a.config.name} ({a.config.role}): {a.config.goal}" for a in workers
+        ])
+
         routing_prompt = f"""You are the orchestrator. Given this task:
 "{task}"
 
-And these available agents:
+Available agents:
 {worker_desc}
 
-Decide which agent(s) should work on this task and in what order. 
-Respond with a JSON array like: ["agent_name_1", "agent_name_2"]
-If one agent is sufficient, use just one.
-Agent names: {[a.config.name for a in workers]}
-"""
+Analyze the task and decide which agent(s) should handle it. Consider:
+1. Which skills are needed?
+2. What order should they work in?
+3. Should any step be conditional?
 
-        # Get routing decision
+Respond with ONLY a JSON array of agent names in execution order.
+Example: ["agent1", "agent2"]
+Agent names: {[a.config.name for a in workers]}"""
+
         route_response = orchestrator.model.chat([Message(role="user", content=routing_prompt)])
         context = ""
 
-        # Parse and execute
+        # Parse routing decision
         try:
-            # Try to extract JSON from response
             content = route_response.content.strip()
             if "[" in content:
-                json_str = content[content.index("["):content.index("]") + 1]
+                json_str = content[content.index("["):content.rindex("]") + 1]
                 selected_names = json.loads(json_str)
             else:
-                selected_names = [workers[0].config.name]  # Fallback
+                selected_names = [workers[0].config.name]
         except (json.JSONDecodeError, ValueError):
             selected_names = [workers[0].config.name]
 
-        # Run selected agents sequentially
-        for name in selected_names:
+        # Execute with conditional routing
+        for i, name in enumerate(selected_names):
             agent = next((a for a in workers if a.config.name == name), None)
             if agent:
                 if self.config.verbose:
-                    print(f"🤖 [{self.config.name}] Handoff to: {agent.config.name} ({agent.config.role})")
-                agent_result = agent.run(task, context=context)
+                    print(f"🤖 [{self.config.name}] Handoff → {agent.config.name} ({agent.config.role})")
+
+                # Conditional: if previous agent found an issue, can route to a different agent
+                agent_task = task if i == 0 else f"Previous output:\n{context}\n\nContinue from here. Original task: {task}"
+                agent_result = agent.run(agent_task, context=context)
                 result.agent_results.append(agent_result)
                 context = agent_result.output
+
+                # Check if agent recommends further routing
+                if agent_result.output and "handoff:" in agent_result.output.lower():
+                    for w in workers:
+                        if w.config.name.lower() in agent_result.output.lower() and w.config.name != name:
+                            if self.config.verbose:
+                                print(f"🤖 [{self.config.name}] Conditional handoff → {w.config.name}")
+                            follow_up = w.run(f"Follow up on: {agent_result.output[:500]}", context=context)
+                            result.agent_results.append(follow_up)
+                            context = follow_up.output
 
         result.final_output = context
         return result
 
-    async def run_async(self, task: str) -> CrewResult:
-        """Async run (currently delegates to sync)."""
-        return self.run(task)
+    def _run_swarm(self, task: str) -> CrewResult:
+        """Agents vote/consensus on the best approach (inspired by CrewAI consensual)."""
+        if len(self.agents) < 2:
+            return self._run_sequential(task)
+
+        result = CrewResult(crew_name=self.config.name, task=task, process="swarm")
+
+        # Phase 1: Each agent proposes independently
+        proposals = []
+        for agent in self.agents:
+            proposal_prompt = f"""Task: {task}
+
+As {agent.config.name} ({agent.config.role}), propose your approach to solve this task.
+Be specific about what you would do. Then provide your solution."""
+            agent_result = agent.run(proposal_prompt)
+            result.agent_results.append(agent_result)
+            proposals.append({
+                "agent": agent.config.name,
+                "approach": agent_result.output[:500],
+                "full": agent_result.output,
+            })
+
+        # Phase 2: Synthesize best approach
+        synthesis_prompt = f"""You are the final synthesizer. Review these proposals for the task:
+
+Task: {task}
+
+Proposals:
+{json.dumps([{"agent": p["agent"], "approach": p["approach"]} for p in proposals], ensure_ascii=False, indent=2)}
+
+Combine the best elements from each proposal into a comprehensive final answer."""
+
+        final_agent = self.agents[-1]  # Last agent synthesizes
+        synthesis_result = final_agent.run(synthesis_prompt)
+        result.final_output = synthesis_result.output
+
+        return result
 
     def to_dict(self) -> dict:
         return {
@@ -237,7 +269,6 @@ class CrewBuilder:
 
     def __init__(self, name: str):
         self._config = CrewConfig(name=name)
-        self._agent_builders: list[AgentConfig] = []
 
     def description(self, desc: str) -> "CrewBuilder":
         self._config.description = desc

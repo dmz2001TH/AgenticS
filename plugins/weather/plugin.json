@@ -1,0 +1,7 @@
+{
+  "name": "weather",
+  "version": "0.1.0",
+  "description": "Weather lookup tool — เช็คสภาพอากาศ",
+  "author": "AgenticS",
+  "tools": ["get_weather"]
+}

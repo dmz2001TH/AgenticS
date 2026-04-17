@@ -167,6 +167,23 @@ class ToolRegistry:
             function=self._list_files,
         )
 
+        # Sub-agent spawning
+        self.register_function(
+            name="spawn_agent",
+            description="Spawn a sub-agent to handle a specific sub-task independently",
+            parameters={
+                "type": "object",
+                "properties": {
+                    "name": {"type": "string", "description": "Name for the sub-agent"},
+                    "role": {"type": "string", "description": "Role of the sub-agent (e.g., Researcher, Coder)"},
+                    "task": {"type": "string", "description": "Task for the sub-agent to complete"},
+                    "model": {"type": "string", "description": "Model to use (default: same as parent agent)"},
+                },
+                "required": ["name", "role", "task"],
+            },
+            function=lambda name, role, task, model="gemini": f"[spawn_agent tool should be called via Agent.spawn_sub_agent]",
+        )
+
         # Python execute
         self.register_function(
             name="python_execute",

@@ -9,7 +9,13 @@ models:
       model: gemini-2.0-flash
       # ใส่ API key หรือ login ผ่าน Google CLI
       # สมัคร API key ที่ https://aistudio.google.com/apikey
-      api_key: null  # หรือใส่ key ตรงนี้
+      api_key: null
+
+    gemini-cli:
+      provider: gemini-cli
+      model: gemini
+      # ใช้ Gemini CLI ที่ login ผ่าน Google account แล้ว
+      # ติดตั้ง: npm i -g @anthropic-ai/gemini-cli หรือใช้ gemini ที่มากับ Google Cloud SDK
 
     openai:
       provider: openai
