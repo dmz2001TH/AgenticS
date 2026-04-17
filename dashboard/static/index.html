@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgenticS — Multi-Agent AI Dashboard</title>
+<style>
+:root {
+  --bg: #0f0f13;
+  --surface: #1a1a24;
+  --surface2: #24243a;
+  --accent: #7c5cfc;
+  --accent2: #5ce0d8;
+  --text: #e8e8f0;
+  --text2: #8888a0;
+  --success: #4ade80;
+  --error: #f87171;
+  --warning: #fbbf24;
+  --border: #2a2a3e;
+  --radius: 12px;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+a { color: var(--accent); text-decoration: none; }
+
+/* Layout */
+.app { display: grid; grid-template-columns: 280px 1fr; grid-template-rows: 60px 1fr; height: 100vh; }
+.header { grid-column: 1 / -1; background: var(--surface); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 24px; gap: 16px; }
+.sidebar { background: var(--surface); border-right: 1px solid var(--border); overflow-y: auto; padding: 16px; }
+.main { overflow-y: auto; padding: 24px; }
+
+/* Header */
+.logo { font-size: 20px; font-weight: 700; background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.header-info { margin-left: auto; display: flex; gap: 16px; align-items: center; }
+.status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--success); animation: pulse 2s infinite; }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+/* Sidebar sections */
+.section { margin-bottom: 24px; }
+.section-title { font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text2); margin-bottom: 12px; font-weight: 600; }
+
+/* Cards */
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; margin-bottom: 12px; cursor: pointer; transition: all 0.2s; }
+.card:hover { border-color: var(--accent); background: var(--surface2); }
+.card.active { border-color: var(--accent); background: var(--surface2); }
+.card-title { font-weight: 600; font-size: 14px; margin-bottom: 4px; }
+.card-desc { font-size: 12px; color: var(--text2); }
+.card-badge { display: inline-block; padding: 2px 8px; border-radius: 99px; font-size: 10px; font-weight: 600; background: var(--accent); color: white; margin-left: 8px; }
+
+/* Chat area */
+.chat-container { display: flex; flex-direction: column; height: calc(100vh - 60px - 48px); }
+.chat-messages { flex: 1; overflow-y: auto; padding: 16px 0; }
+.message { padding: 12px 16px; margin-bottom: 8px; border-radius: var(--radius); max-width: 80%; animation: fadeIn 0.3s; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.message.user { background: var(--accent); color: white; margin-left: auto; border-bottom-right-radius: 4px; }
+.message.agent { background: var(--surface2); border: 1px solid var(--border); border-bottom-left-radius: 4px; }
+.message.system { background: var(--surface); border-left: 3px solid var(--accent2); color: var(--text2); font-size: 13px; font-style: italic; margin: 0 auto; max-width: 90%; }
+.message.error { background: #2a1a1a; border: 1px solid var(--error); color: var(--error); }
+.message pre { background: #0a0a10; padding: 12px; border-radius: 8px; overflow-x: auto; font-size: 13px; margin-top: 8px; }
+.message code { background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; font-size: 13px; }
+.msg-header { font-size: 11px; color: var(--text2); margin-bottom: 4px; }
+.msg-content { line-height: 1.6; white-space: pre-wrap; }
+
+/* Input area */
+.chat-input-area { padding: 16px 0; display: flex; gap: 12px; align-items: flex-end; }
+.chat-input { flex: 1; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 16px; color: var(--text); font-size: 14px; resize: none; outline: none; min-height: 48px; max-height: 200px; font-family: inherit; transition: border-color 0.2s; }
+.chat-input:focus { border-color: var(--accent); }
+.send-btn { background: var(--accent); border: none; color: white; padding: 12px 24px; border-radius: var(--radius); cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.2s; white-space: nowrap; }
+.send-btn:hover { filter: brightness(1.15); transform: translateY(-1px); }
+.send-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+/* Crew form */
+.form-group { margin-bottom: 16px; }
+.form-label { display: block; font-size: 12px; color: var(--text2); margin-bottom: 6px; font-weight: 500; }
+.form-input, .form-select, .form-textarea { width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; color: var(--text); font-size: 13px; font-family: inherit; outline: none; }
+.form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--accent); }
+.form-textarea { resize: vertical; min-height: 60px; }
+.btn { padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; font-size: 13px; transition: all 0.2s; }
+.btn-primary { background: var(--accent); color: white; }
+.btn-primary:hover { filter: brightness(1.15); }
+.btn-secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+.btn-danger { background: var(--error); color: white; }
+
+/* Crew detail */
+.crew-agents { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.agent-chip { background: var(--bg); border: 1px solid var(--border); border-radius: 99px; padding: 6px 14px; font-size: 12px; display: flex; align-items: center; gap: 6px; }
+.agent-chip .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent2); }
+
+/* Stats */
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 24px; }
+.stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; text-align: center; }
+.stat-value { font-size: 24px; font-weight: 700; background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.stat-label { font-size: 11px; color: var(--text2); text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
+
+/* Tabs */
+.tabs { display: flex; gap: 0; margin-bottom: 24px; border-bottom: 1px solid var(--border); }
+.tab { padding: 12px 20px; cursor: pointer; font-size: 13px; font-weight: 500; color: var(--text2); border-bottom: 2px solid transparent; transition: all 0.2s; }
+.tab:hover { color: var(--text); }
+.tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+/* Modal */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 100; }
+.modal { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 24px; width: 500px; max-width: 90vw; max-height: 80vh; overflow-y: auto; }
+.modal-title { font-size: 18px; font-weight: 700; margin-bottom: 20px; }
+.hidden { display: none !important; }
+
+/* Responsive */
+@media (max-width: 768px) {
+  .app { grid-template-columns: 1fr; }
+  .sidebar { display: none; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- Header -->
+  <header class="header">
+    <div class="logo">🤖 AgenticS</div>
+    <div class="header-info">
+      <span style="font-size:12px;color:var(--text2)">Model: <strong id="currentModel">gemini</strong></span>
+      <div class="status-dot" id="statusDot" title="Connected"></div>
+    </div>
+  </header>
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="section">
+      <div class="section-title">Quick Chat</div>
+      <div class="card" onclick="setMode('chat')">
+        <div class="card-title">💬 คุยกับ Agent</div>
+        <div class="card-desc">ถามคำถาม ขอความช่วยเหลือ</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Crews</div>
+      <div id="crewsList"></div>
+      <div class="card" onclick="showCreateCrew()" style="border-style:dashed;text-align:center">
+        <div class="card-title">+ สร้าง Crew ใหม่</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Model</div>
+      <select class="form-select" id="modelSelect" onchange="switchModel(this.value)">
+        <option value="gemini">🟢 Gemini (Google)</option>
+        <option value="openai">🔵 OpenAI (GPT)</option>
+        <option value="claude">🟠 Claude (Anthropic)</option>
+        <option value="ollama">🟡 Ollama (Local)</option>
+      </select>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Tools</div>
+      <div id="toolsList" style="font-size:12px;color:var(--text2)"></div>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main">
+    <!-- Stats -->
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-value" id="statCrews">0</div><div class="stat-label">Crews</div></div>
+      <div class="stat-card"><div class="stat-value" id="statAgents">0</div><div class="stat-label">Agents</div></div>
+      <div class="stat-card"><div class="stat-value" id="statMessages">0</div><div class="stat-label">Messages</div></div>
+      <div class="stat-card"><div class="stat-value" id="statTokens">0</div><div class="stat-label">Tokens Used</div></div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <div class="tab active" onclick="switchTab('chat')">💬 Chat</div>
+      <div class="tab" onclick="switchTab('history')">📜 History</div>
+      <div class="tab" onclick="switchTab('crews')">👥 Crews</div>
+    </div>
+
+    <!-- Chat Tab -->
+    <div id="tabChat">
+      <div class="chat-container">
+        <div class="chat-messages" id="chatMessages">
+          <div class="message system">
+            👋 สวัสดี! ฉันคือ AgenticS — Multi-Agent AI System<br>
+            พิมพ์คำถามหรือ task ที่ต้องการให้ช่วยได้เลย 💬
+          </div>
+        </div>
+        <div class="chat-input-area">
+          <textarea class="chat-input" id="chatInput" placeholder="พิมพ์ข้อความ... (Enter ส่ง, Shift+Enter ขึ้นบรรทัดใหม่)" rows="1" onkeydown="handleKey(event)"></textarea>
+          <button class="send-btn" id="sendBtn" onclick="sendMessage()">ส่ง ⚡</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- History Tab -->
+    <div id="tabHistory" class="hidden">
+      <div id="historyList"></div>
+    </div>
+
+    <!-- Crews Tab -->
+    <div id="tabCrews" class="hidden">
+      <div id="crewsDetail"></div>
+    </div>
+  </main>
+</div>
+
+<!-- Create Crew Modal -->
+<div class="modal-overlay hidden" id="createCrewModal">
+  <div class="modal">
+    <div class="modal-title">👥 สร้าง Crew ใหม่</div>
+    <div class="form-group">
+      <label class="form-label">ชื่อ Crew</label>
+      <input class="form-input" id="crewName" placeholder="เช่น research-team">
+    </div>
+    <div class="form-group">
+      <label class="form-label">คำอธิบาย</label>
+      <input class="form-input" id="crewDesc" placeholder="ทีมวิจัย ค้นหา วิเคราะห์ สรุป">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Process</label>
+      <select class="form-select" id="crewProcess">
+        <option value="sequential">Sequential (ทำงานตามลำดับ)</option>
+        <option value="parallel">Parallel (ทำงานพร้อมกัน)</option>
+        <option value="handoff">Handoff (ส่งงานต่อกัน)</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Agents</label>
+      <div id="agentsList">
+        <div class="agent-entry" style="background:var(--bg);padding:12px;border-radius:8px;margin-bottom:8px">
+          <input class="form-input" placeholder="ชื่อ Agent" style="margin-bottom:8px" data-field="name">
+          <input class="form-input" placeholder="Role (เช่น Researcher)" style="margin-bottom:8px" data-field="role">
+          <input class="form-input" placeholder="Goal" data-field="goal">
+        </div>
+      </div>
+      <button class="btn btn-secondary" onclick="addAgentEntry()" style="margin-top:8px">+ เพิ่ม Agent</button>
+    </div>
+    <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:20px">
+      <button class="btn btn-secondary" onclick="hideCreateCrew()">ยกเลิก</button>
+      <button class="btn btn-primary" onclick="createCrew()">สร้าง Crew</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// --- State ---
+let ws = null;
+let currentMode = 'chat';
+let currentCrew = null;
+let currentModel = 'gemini';
+let messageCount = 0;
+let totalTokens = 0;
+let history = [];
+const API = window.location.origin;
+
+// --- Init ---
+document.addEventListener('DOMContentLoaded', () => {
+  connectWebSocket();
+  loadModels();
+  loadTools();
+  loadCrews();
+});
+
+// --- WebSocket ---
+function connectWebSocket() {
+  const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+  ws = new WebSocket(`${protocol}//${location.host}/ws`);
+  
+  ws.onopen = () => {
+    document.getElementById('statusDot').style.background = 'var(--success)';
+    document.getElementById('statusDot').title = 'Connected';
+  };
+  
+  ws.onmessage = (event) => {
+    const data = JSON.parse(event.data);
+    handleWsMessage(data);
+  };
+  
+  ws.onclose = () => {
+    document.getElementById('statusDot').style.background = 'var(--error)';
+    document.getElementById('statusDot').title = 'Disconnected';
+    setTimeout(connectWebSocket, 3000);
+  };
+}
+
+function handleWsMessage(data) {
+  if (data.type === 'status') {
+    addMessage('system', data.content);
+  } else if (data.type === 'response') {
+    removeTyping();
+    addMessage('agent', data.content);
+    if (data.usage) totalTokens += data.usage.total_tokens || 0;
+    updateStats();
+    history.push({ time: new Date().toLocaleString(), content: data.content.substring(0, 200), crew: data.crew });
+  } else if (data.type === 'error') {
+    removeTyping();
+    addMessage('error', '❌ ' + data.content);
+  }
+}
+
+// --- Chat ---
+function sendMessage() {
+  const input = document.getElementById('chatInput');
+  const msg = input.value.trim();
+  if (!msg) return;
+  
+  addMessage('user', msg);
+  input.value = '';
+  input.style.height = 'auto';
+  messageCount++;
+  updateStats();
+  
+  // Show typing
+  const typing = document.createElement('div');
+  typing.className = 'message system';
+  typing.id = 'typing';
+  typing.innerHTML = '⏳ กำลังประมวลผล...';
+  document.getElementById('chatMessages').appendChild(typing);
+  scrollChat();
+  
+  // Send via WebSocket
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    ws.send(JSON.stringify({
+      message: msg,
+      model: currentModel,
+      crew: currentCrew,
+    }));
+  } else {
+    removeTyping();
+    addMessage('error', 'ไม่ได้เชื่อมต่อ server');
+  }
+}
+
+function addMessage(type, content) {
+  const container = document.getElementById('chatMessages');
+  const div = document.createElement('div');
+  div.className = `message ${type}`;
+  
+  const header = document.createElement('div');
+  header.className = 'msg-header';
+  header.textContent = type === 'user' ? '👤 You' : type === 'system' ? '⚡ System' : type === 'error' ? '❌ Error' : '🤖 Agent';
+  
+  const body = document.createElement('div');
+  body.className = 'msg-content';
+  body.textContent = content;
+  
+  div.appendChild(header);
+  div.appendChild(body);
+  container.appendChild(div);
+  scrollChat();
+}
+
+function removeTyping() {
+  const t = document.getElementById('typing');
+  if (t) t.remove();
+}
+
+function scrollChat() {
+  const c = document.getElementById('chatMessages');
+  c.scrollTop = c.scrollHeight;
+}
+
+function handleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage();
+  }
+}
+
+// --- Tabs ---
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('tabChat').classList.toggle('hidden', tab !== 'chat');
+  document.getElementById('tabHistory').classList.toggle('hidden', tab !== 'history');
+  document.getElementById('tabCrews').classList.toggle('hidden', tab !== 'crews');
+  
+  if (tab === 'history') renderHistory();
+  if (tab === 'crews') renderCrewsDetail();
+}
+
+// --- Models ---
+async function loadModels() {
+  try {
+    const res = await fetch(`${API}/api/models`);
+    const data = await res.json();
+    document.getElementById('currentModel').textContent = data.default;
+  } catch(e) { console.error('Failed to load models:', e); }
+}
+
+function switchModel(model) {
+  currentModel = model;
+  document.getElementById('currentModel').textContent = model;
+}
+
+// --- Tools ---
+async function loadTools() {
+  try {
+    const res = await fetch(`${API}/api/tools`);
+    const data = await res.json();
+    document.getElementById('toolsList').textContent = data.tools.join(', ');
+  } catch(e) { console.error('Failed to load tools:', e); }
+}
+
+// --- Crews ---
+async function loadCrews() {
+  try {
+    const res = await fetch(`${API}/api/crews`);
+    const data = await res.json();
+    renderCrewsSidebar(data.crews);
+    updateStats();
+  } catch(e) { console.error('Failed to load crews:', e); }
+}
+
+function renderCrewsSidebar(crews) {
+  const container = document.getElementById('crewsList');
+  container.innerHTML = '';
+  let totalAgents = 0;
+  crews.forEach(crew => {
+    totalAgents += crew.agents.length;
+    const card = document.createElement('div');
+    card.className = 'card' + (currentCrew === crew.name ? ' active' : '');
+    card.innerHTML = `
+      <div class="card-title">${crew.name}<span class="card-badge">${crew.process}</span></div>
+      <div class="card-desc">${crew.agents.length} agents · ${crew.description || 'No description'}</div>
+    `;
+    card.onclick = () => selectCrew(crew.name);
+    container.appendChild(card);
+  });
+  document.getElementById('statCrews').textContent = crews.length;
+  document.getElementById('statAgents').textContent = totalAgents;
+}
+
+function selectCrew(name) {
+  currentCrew = currentCrew === name ? null : name;
+  loadCrews();
+  addMessage('system', currentCrew ? `📋 Selected crew: ${currentCrew}` : '💬 Quick chat mode');
+}
+
+function setMode(mode) {
+  currentCrew = null;
+  loadCrews();
+  addMessage('system', '💬 Quick chat mode — single agent');
+}
+
+// --- Create Crew ---
+function showCreateCrew() {
+  document.getElementById('createCrewModal').classList.remove('hidden');
+}
+function hideCreateCrew() {
+  document.getElementById('createCrewModal').classList.add('hidden');
+}
+
+function addAgentEntry() {
+  const list = document.getElementById('agentsList');
+  const entry = document.createElement('div');
+  entry.className = 'agent-entry';
+  entry.style.cssText = 'background:var(--bg);padding:12px;border-radius:8px;margin-bottom:8px';
+  entry.innerHTML = `
+    <input class="form-input" placeholder="ชื่อ Agent" style="margin-bottom:8px" data-field="name">
+    <input class="form-input" placeholder="Role (เช่น Researcher)" style="margin-bottom:8px" data-field="role">
+    <input class="form-input" placeholder="Goal" data-field="goal">
+  `;
+  list.appendChild(entry);
+}
+
+async function createCrew() {
+  const name = document.getElementById('crewName').value.trim();
+  if (!name) return alert('ใส่ชื่อ Crew!');
+  
+  const entries = document.querySelectorAll('#agentsList .agent-entry');
+  const agents = [];
+  entries.forEach(entry => {
+    const name = entry.querySelector('[data-field="name"]').value.trim();
+    const role = entry.querySelector('[data-field="role"]').value.trim();
+    const goal = entry.querySelector('[data-field="goal"]').value.trim();
+    if (name) agents.push({ name, role: role || 'Assistant', goal: goal || 'Help with tasks' });
+  });
+  
+  if (agents.length === 0) return alert('เพิ่มอย่างน้อย 1 Agent!');
+  
+  try {
+    await fetch(`${API}/api/crews`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name,
+        description: document.getElementById('crewDesc').value,
+        process: document.getElementById('crewProcess').value,
+        agents,
+      }),
+    });
+    hideCreateCrew();
+    loadCrews();
+    addMessage('system', `✅ สร้าง crew "${name}" สำเร็จ!`);
+  } catch(e) {
+    alert('Error: ' + e.message);
+  }
+}
+
+// --- History ---
+function renderHistory() {
+  const container = document.getElementById('historyList');
+  if (history.length === 0) {
+    container.innerHTML = '<div class="message system">ยังไม่มี history</div>';
+    return;
+  }
+  container.innerHTML = history.map((h, i) => `
+    <div class="card">
+      <div class="card-title">${h.time}</div>
+      <div class="card-desc">${h.content}${h.crew ? ` · crew: ${h.crew}` : ''}</div>
+    </div>
+  `).join('');
+}
+
+// --- Crews Detail ---
+function renderCrewsDetail() {
+  fetch(`${API}/api/crews`).then(r => r.json()).then(data => {
+    const container = document.getElementById('crewsDetail');
+    if (data.crews.length === 0) {
+      container.innerHTML = '<div class="message system">ยังไม่มี Crew — สร้าง Crew แรกจาก sidebar</div>';
+      return;
+    }
+    container.innerHTML = data.crews.map(crew => `
+      <div class="card">
+        <div class="card-title">${crew.name} <span class="card-badge">${crew.process}</span></div>
+        <div class="card-desc">${crew.description}</div>
+        <div class="crew-agents">
+          ${crew.agents.map(a => `<div class="agent-chip"><div class="dot"></div>${a.name} (${a.role})</div>`).join('')}
+        </div>
+        <div style="margin-top:12px;display:flex;gap:8px">
+          <button class="btn btn-primary" onclick="selectCrew('${crew.name}');switchTab('chat')">▶ Run</button>
+          <button class="btn btn-danger" onclick="deleteCrew('${crew.name}')">🗑 Delete</button>
+        </div>
+      </div>
+    `).join('');
+  });
+}
+
+async function deleteCrew(name) {
+  if (!confirm(`ลบ crew "${name}"?`)) return;
+  await fetch(`${API}/api/crews/${name}`, { method: 'DELETE' });
+  if (currentCrew === name) currentCrew = null;
+  loadCrews();
+  renderCrewsDetail();
+}
+
+// --- Stats ---
+function updateStats() {
+  document.getElementById('statMessages').textContent = messageCount;
+  document.getElementById('statTokens').textContent = totalTokens > 999 ? (totalTokens/1000).toFixed(1) + 'k' : totalTokens;
+}
+</script>
+</body>
+</html>

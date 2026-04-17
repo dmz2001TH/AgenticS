@@ -1,0 +1,39 @@
+# Research Team — ทีมวิจัย
+# ทำงานแบบ sequential: ค้นหา → วิเคราะห์ → สรุป
+
+name: research-team
+description: ทีมวิจัย — ค้นหาข้อมูล วิเคราะห์ แล้วเขียนสรุป
+process: sequential
+
+agents:
+  - name: researcher
+    role: Research Specialist
+    goal: ค้นหาข้อมูลเชิงลึกจากแหล่งต่างๆ ทั้ง web search และ file analysis
+    backstory: นักวิจัยผู้เชี่ยวชาญที่สามารถค้นหาข้อมูลจากทุกแหล่งได้อย่างรวดเร็ว
+    model: gemini
+    tools:
+      - web_search
+      - file_read
+      - list_files
+    temperature: 0.3
+
+  - name: analyst
+    role: Data Analyst
+    goal: วิเคราะห์ข้อมูลที่รวบรวมมา สร้าง insight และ pattern
+    backstory: นักวิเคราะห์ข้อมูลที่มองเห็น pattern ที่คนอื่นมองข้าม
+    model: gemini
+    tools:
+      - python_execute
+      - file_read
+      - file_write
+    temperature: 0.5
+
+  - name: writer
+    role: Technical Writer
+    goal: เขียนรายงานสรุปที่เข้าใจง่ายจากผลการวิเคราะห์
+    backstory: นักเขียนเทคนิคที่สามารถแปลงข้อมูลซับซ้อนให้เข้าใจง่าย
+    model: gemini
+    tools:
+      - file_write
+      - file_read
+    temperature: 0.7

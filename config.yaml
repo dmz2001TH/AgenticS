@@ -1,0 +1,35 @@
+# AgenticS Configuration
+# =====================
+
+models:
+  default: gemini
+  providers:
+    gemini:
+      provider: google
+      model: gemini-2.0-flash
+      # ใส่ API key หรือ login ผ่าน Google CLI
+      # สมัคร API key ที่ https://aistudio.google.com/apikey
+      api_key: null  # หรือใส่ key ตรงนี้
+
+    openai:
+      provider: openai
+      model: gpt-4o-mini
+      api_key: null
+
+    claude:
+      provider: anthropic
+      model: claude-sonnet-4-20250514
+      api_key: null
+
+    ollama:
+      provider: ollama
+      model: llama3.1
+      api_base: http://localhost:11434
+
+server:
+  host: 0.0.0.0
+  port: 7860
+  debug: true
+
+# Default crew configurations
+crews: {}
