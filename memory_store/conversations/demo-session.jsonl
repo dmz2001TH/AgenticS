@@ -1,0 +1,2 @@
+{"id": "demo", "role": "assistant", "content": "Created a Python hello world script at /tmp/hello.py", "agent_name": "TestBot", "session_id": "demo-session", "timestamp": "2026-04-17T20:50:00", "tags": [], "metadata": {}}
+{"id": "demo2", "role": "user", "content": "Make it print in Thai", "agent_name": "TestBot", "session_id": "demo-session", "timestamp": "2026-04-17T20:50:01", "tags": [], "metadata": {}}

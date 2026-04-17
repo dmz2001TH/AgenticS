@@ -1,0 +1,52 @@
+{
+  "id": "5786053e",
+  "task": "Write a hello world script",
+  "agent_name": "TestBot",
+  "crew_name": null,
+  "steps": [
+    {
+      "step_type": "thought",
+      "content": "I need to write Python code",
+      "agent_name": "TestBot",
+      "timestamp": "2026-04-17T20:50:00",
+      "tool_name": null,
+      "tool_args": null,
+      "tool_result": null
+    },
+    {
+      "step_type": "action",
+      "content": "Writing file",
+      "agent_name": "TestBot",
+      "timestamp": "2026-04-17T20:50:01",
+      "tool_name": "file_write",
+      "tool_args": {
+        "path": "/tmp/hello.py",
+        "content": "print(\"Hello\")"
+      },
+      "tool_result": null
+    },
+    {
+      "step_type": "observation",
+      "content": "[Written 14 bytes to /tmp/hello.py]",
+      "agent_name": "TestBot",
+      "timestamp": "2026-04-17T20:50:01",
+      "tool_name": null,
+      "tool_args": null,
+      "tool_result": null
+    },
+    {
+      "step_type": "result",
+      "content": "Created hello.py successfully",
+      "agent_name": "TestBot",
+      "timestamp": "2026-04-17T20:50:02",
+      "tool_name": null,
+      "tool_args": null,
+      "tool_result": null
+    }
+  ],
+  "final_result": "File created successfully",
+  "total_tokens": 0,
+  "duration_seconds": 0.0,
+  "success": true,
+  "created_at": "2026-04-17T20:55:03.941826"
+}
