@@ -14,8 +14,10 @@ try:
     import litellm
     litellm.suppress_debug_info = True
     litellm.set_verbose = False
+    _LITELLM_AVAILABLE = True
 except ImportError:
-    raise ImportError("litellm not installed. Run: pip install litellm")
+    _LITELLM_AVAILABLE = False
+    litellm = None
 
 
 @dataclass
@@ -99,6 +101,12 @@ class ModelClient:
         **kwargs,
     ) -> ModelResponse:
         """Synchronous chat completion."""
+        if not _LITELLM_AVAILABLE:
+            return ModelResponse(
+                content="[litellm not installed. Run: pip install -r requirements.txt]",
+                model="none",
+                finish_reason="error",
+            )
         formatted = self._format_messages(messages)
         params = {
             "model": self.model_id,
